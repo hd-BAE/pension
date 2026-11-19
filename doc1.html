@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>문서 열람</title>
+  <style>
+    body { margin: 0; background: #525659; display: flex; flex-direction: column; align-items: center; }
+    #viewer { width: 100%; max-width: 900px; padding: 10px; box-sizing: border-box; }
+    canvas { width: 100%; height: auto; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); background: #fff; }
+    #msg { color: #fff; font-family: sans-serif; margin-top: 40px; }
+  </style>
+  <script src="https://cloudflare.com"></script>
+</head>
+<body>
+  <div id="msg">문서를 불러오는 중...</div>
+  <div id="viewer"></div>
+
+  <script>
+    const file = 'doc1.pdf'; // <-- 올릴 PDF 파일 이름과 똑같이 맞추기
+    const msg = document.getElementById('msg');
+    const viewer = document.getElementById('viewer');
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cloudflare.com';
+    pdfjsLib.getDocument(file).promise.then(async (pdf) => {
+      msg.style.display = 'none';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 2.0 });
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        viewer.appendChild(canvas);
+        await page.render({ canvasContext: ctx, viewport }).promise;
+      }
+    }).catch(() => {
+      msg.textContent = 'PDF 파일을 불러올 수 없습니다.';
+    });
+  </script>
+</body>
+</html>
